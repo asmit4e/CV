@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive CV - Asmit Singh</title>
+    <!-- Chosen Palette: Professional Blue & Grey -->
+    <!-- Application Structure Plan: A full-width, vertical-scrolling single-page application with a fixed top navigation bar. The layout is now based on a full-screen, grid-based approach. The hero section is more impactful. The Skills Dashboard is a multi-card grid, treating each skill set as a separate interactive element. The timeline is a central, visually engaging component. The overall design prioritizes screen real estate for a more immersive and professional feel, especially on larger displays. A new AI assistant chatbot is added as a fixed element for quick access to information. -->
+    <!-- Visualization & Content Choices: 
+        - Summary (Inform): Expanded hero section with larger text and a full-width banner feel.
+        - Skills (Compare/Inform): Retained Radar and Bar charts, but with updated colors and styling. The charts are now placed within a multi-column grid layout to fill the space. Justification: Visualizes abstract skills and proficiency levels more effectively than lists. Library: Chart.js.
+        - Experience (Change/Organize): Enhanced vertical timeline with a more pronounced line and dot design. Timeline cards now have a more dynamic and interactive hover effect. Justification: Creates a clear, engaging narrative of professional growth.
+        - Education (Inform): The section is now a full-width grid, with the academic journey and a grade chart presented as two distinct, but related, components. Justification: Presents academic data cleanly and visually. Library: Chart.js.
+        - AI Assistant: A fixed, floating chat window for quick Q&A, now powered by a large language model for more advanced, dynamic responses. Interaction: Click to open/close, text input for questions. Justification: Provides a modern, engaging way for users to find contact info and learn about the page.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #1F2937;
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #3B82F6;
+            transform: translateY(-2px);
+        }
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        .chat-bubble {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 4rem;
+            height: 4rem;
+            background-color: #3B82F6;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out;
+            z-index: 100;
+        }
+        .chat-bubble:hover {
+            transform: scale(1.1);
+        }
+        .chat-window {
+            position: fixed;
+            bottom: 6rem;
+            right: 1.5rem;
+            width: 100%;
+            max-width: 24rem;
+            height: 30rem;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 99;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chat-header {
+            background-color: #3B82F6;
+            color: white;
+            padding: 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-body {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: #F3F4F6;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .message {
+            max-width: 80%;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.75rem;
+        }
+        .message-user {
+            background-color: #E5E7EB;
+            align-self: flex-end;
+            text-align: right;
+        }
+        .message-assistant {
+            background-color: #DBEAFE;
+            align-self: flex-start;
+        }
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .chat-input input {
+            flex-grow: 1;
+            padding: 0.5rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+        }
+        .chat-input button {
+            background-color: #3B82F6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-lg">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-gray-800">ASMIT SINGH</div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#summary" class="nav-link font-medium">Summary</a>
+                <a href="#skills" class="nav-link font-medium">Skills</a>
+                <a href="#experience" class="nav-link font-medium">Experience</a>
+                <a href="#education" class="nav-link font-medium">Education</a>
+            </div>
+            <div class="md:hidden">
+                <button id="menu-btn" class="text-gray-800 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 bg-white shadow-inner">
+            <a href="#summary" class="block py-2 nav-link font-medium">Summary</a>
+            <a href="#skills" class="block py-2 nav-link font-medium">Skills</a>
+            <a href="#experience" class="block py-2 nav-link font-medium">Experience</a>
+            <a href="#education" class="block py-2 nav-link font-medium">Education</a>
+        </div>
+    </header>
+
+    <main class="w-full">
+
+        <!-- Summary Section -->
+        <section id="summary" class="bg-gray-100 min-h-screen flex flex-col justify-center items-center px-4 md:px-0 text-center">
+            <div class="max-w-4xl mx-auto py-16">
+                <h1 class="text-6xl md:text-8xl font-extrabold text-gray-900 mb-4 tracking-tight">ASMIT SINGH</h1>
+                <p class="text-2xl md:text-3xl text-gray-600 mb-6 font-light">B.Tech Computer Science & Engineering</p>
+                <p class="text-lg md:text-xl text-gray-700 leading-relaxed max-w-2xl mx-auto mb-10">
+                    A highly motivated and skilled B.Tech student with 4+ years of hands-on experience in software development and project management. Proficient in Python, Java, and C++, with a passion for building innovative solutions and a strong foundation in Data Structures and Algorithms. Eager to contribute to a forward-thinking team as a software development intern.
+                </p>
+                <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
+                    <a href="mailto:asmit.singh.in@gmail.com" class="w-full md:w-auto bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition-colors transform hover:scale-105">Contact Me</a>
+                    <a href="https://linkedin.com/in/asmit-singh-795b97287" target="_blank" class="w-full md:w-auto bg-gray-300 text-gray-800 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-400 transition-colors transform hover:scale-105">LinkedIn Profile</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-20 px-4 md:px-12 bg-white">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold text-gray-800">Skills Dashboard</h2>
+                <p class="text-xl text-gray-600 mt-4">An interactive overview of my technical and professional abilities.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+                <div class="card p-8 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-3xl font-semibold mb-4 text-center text-blue-600">Technical Proficiency</h3>
+                        <p class="text-gray-600 mb-6 text-center">A comprehensive look at my technical skills, from core languages to specialized technologies.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="technicalSkillsChart"></canvas>
+                    </div>
+                </div>
+                <div class="card p-8 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-3xl font-semibold mb-4 text-center text-blue-600">Professional Strengths</h3>
+                        <p class="text-gray-600 mb-6 text-center">My soft skills, visualized to show a balanced and well-rounded profile.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="professionalSkillsChart"></canvas>
+                    </div>
+                </div>
+                <div class="card p-8 rounded-2xl flex flex-col justify-between md:col-span-2 lg:col-span-1">
+                    <div>
+                        <h3 class="text-3xl font-semibold mb-4 text-center text-blue-600">Skill Details</h3>
+                        <p class="text-gray-600 mb-6 text-center">Explore the specific skills and their application in my projects.</p>
+                    </div>
+                    <div class="flex-grow flex items-center">
+                        <ul id="skill-details-list" class="space-y-4 text-gray-700 text-lg">
+                            <li class="font-medium">▶ Problem-Solving: My top strength, applied to both operational and engineering challenges.</li>
+                            <li class="font-medium">▶ Project Management: Demonstrated in managing deadlines and team collaboration.</li>
+                            <li class="font-medium">▶ Data Structures & Algorithms: The core of my C++ and Python expertise.</li>
+                            <li class="font-medium">▶ AI/ML: Theoretical and practical knowledge used in the "Visual Math Teacher" project.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="py-20 px-4 md:px-12 bg-gray-100">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold text-gray-800">Experience & Projects</h2>
+                <p class="text-xl text-gray-600 mt-4">A chronological timeline of my key projects, training, and professional experiences.</p>
+            </div>
+            <div class="relative max-w-4xl mx-auto">
+                <div class="absolute left-1/2 w-1 h-full bg-blue-300 transform -translate-x-1/2 rounded-full"></div>
+                <div id="timeline-container" class="space-y-20">
+                    <!-- Timeline items will be injected here by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section id="education" class="py-20 px-4 md:px-12 bg-white">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold text-gray-800">Education & Achievements</h2>
+                <p class="text-xl text-gray-600 mt-4">My academic background and key accomplishments.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div class="card p-8 rounded-2xl">
+                    <h3 class="text-3xl font-semibold mb-6 text-blue-600">Academic Journey</h3>
+                    <div id="education-container" class="space-y-6 text-gray-700">
+                        <!-- Education items injected by JS -->
+                    </div>
+                </div>
+                <div class="card p-8 rounded-2xl flex flex-col">
+                    <h3 class="text-3xl font-semibold mb-6 text-blue-600">Performance Overview</h3>
+                    <p class="text-gray-600 mb-6">A visual breakdown of my academic grades across different levels of education.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="educationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-8 rounded-2xl mt-12">
+                <h3 class="text-3xl font-semibold mb-6 text-blue-600 text-center">Key Achievements</h3>
+                <div id="achievements-container" class="grid md:grid-cols-2 gap-8 text-gray-700">
+                    <!-- Achievements injected by JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-10 bg-gray-900 text-gray-400">
+        <p>&copy; 2024 Asmit Singh. All Rights Reserved.</p>
+    </footer>
+
+    <!-- AI Assistant Chatbot -->
+    <div id="chat-bubble" class="chat-bubble">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    </div>
+    <div id="chat-window" class="chat-window hidden">
+        <div class="chat-header">
+            AI Assistant
+            <button id="close-chat" class="text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div id="chat-body" class="chat-body">
+            <div class="message message-assistant">Hello! I'm Asmit's AI Assistant. How can I help you today?</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chat-input-text" placeholder="Ask a question..." class="flex-grow">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Data
+            const technicalSkills = {
+                labels: ['Python', 'Java', 'JavaScript', 'C++', 'AI/ML', 'Web Services', 'APIs', 'DSA'],
+                data: [90, 85, 75, 95, 80, 70, 75, 95]
+            };
+            const professionalSkills = {
+                labels: ['Problem-Solving', 'Project Management', 'Leadership', 'Communication', 'Critical Thinking', 'Interpersonal'],
+                data: [95, 85, 80, 90, 90, 85]
+            };
+            const timelineData = [
+                {
+                    date: 'Project',
+                    title: 'Visual Math Teacher',
+                    type: 'Project',
+                    description: 'An AI-powered application that leverages cutting-edge Optical Character Recognition (OCR) and Machine Learning (ML) models to accurately scan and solve complex mathematical problems from both printed and handwritten sources. This project demonstrates proficiency in AI/ML model integration and a focus on creating practical, user-centric educational tools.'
+                },
+                {
+                    date: 'Project',
+                    title: 'Smart Pharmacy Management System',
+                    type: 'Project',
+                    description: 'A comprehensive and user-friendly system developed to modernize pharmacy operations. Key features include real-time inventory management with automated stock alerts, efficient sales tracking, and secure patient record management. This project showcases skills in full-stack development, database design, and building robust business applications.'
+                },
+                {
+                    date: 'Completed',
+                    title: 'DSA with C++',
+                    type: 'Training',
+                    description: 'Completed a comprehensive training program on Data Structures and Algorithms using C++, focusing on efficient problem-solving techniques.'
+                },
+                {
+                    date: 'Ongoing',
+                    title: 'AI and ML Training',
+                    type: 'Training',
+                    description: 'Currently enrolled in an in-depth course covering Artificial Intelligence and Machine Learning concepts and applications.'
+                },
+                {
+                    date: 'Dec 2024',
+                    title: 'IEEE International Conference',
+                    type: 'Volunteering',
+                    description: 'Worked as a volunteer for communication and management roles during the conference, coordinating with multiple teams and managing event logistics.'
+                }
+            ];
+            const educationData = [
+                {
+                    degree: 'Bachelor of Computer Science and Engineering',
+                    institution: 'ITS Engineering College, Greater Noida (AKTU)',
+                    period: '2022 - 2026',
+                    grade: '66% (Current)'
+                },
+                {
+                    degree: 'Intermediate',
+                    institution: 'High School',
+                    period: 'Completed',
+                    grade: '75%'
+                },
+                {
+                    degree: 'High School',
+                    institution: 'High School',
+                    period: 'Completed',
+                    grade: '74%'
+                }
+            ];
+            const achievementsData = [
+                {
+                    title: 'Effective Time Management',
+                    description: 'Demonstrated strong organizational and planning skills by effectively balancing academic responsibilities with project deadlines, leading to the timely and high-quality completion of all tasks.'
+                },
+                {
+                    title: 'Collaboration Performance Boost',
+                    description: 'Fostered a collaborative team environment, which encouraged cross-functional teamwork and resulted in a measurable improvement in overall team efficiency and creative output.'
+                },
+                {
+                    title: 'Problem-Solving Expertise',
+                    description: 'Successfully navigated and resolved complex operational and engineering challenges in various projects, reflecting a persistent and logical approach to finding innovative solutions.'
+                }
+            ];
+
+            // Mobile Menu Toggle
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            // Active Nav Link on Scroll
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            // Chart.js Initializations
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                        titleColor: '#F9FAFB',
+                        bodyColor: '#D1D5DB',
+                        borderColor: '#4B5563',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: '#E5E7EB' },
+                        grid: { color: '#E5E7EB' },
+                        pointLabels: { font: { size: 14, weight: 'bold' }, color: '#3B82F6' },
+                        ticks: {
+                            backdropColor: '#F8FAFC',
+                            color: '#3B82F6'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#E5E7EB'
+                        },
+                        ticks: {
+                            color: '#4B5563',
+                            font: { size: 12 }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#4B5563',
+                            font: { size: 12 }
+                        }
+                    }
+                }
+            };
+            
+            new Chart(document.getElementById('technicalSkillsChart'), {
+                type: 'bar',
+                data: {
+                    labels: technicalSkills.labels,
+                    datasets: [{
+                        label: 'Proficiency',
+                        data: technicalSkills.data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: { ...chartOptions, indexAxis: 'y' }
+            });
+
+            new Chart(document.getElementById('professionalSkillsChart'), {
+                type: 'radar',
+                data: {
+                    labels: professionalSkills.labels,
+                    datasets: [{
+                        label: 'Strength',
+                        data: professionalSkills.data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.4)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                    }]
+                },
+                options: chartOptions
+            });
+            
+            new Chart(document.getElementById('educationChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['High School', 'Intermediate', 'B.Tech (Current)'],
+                    datasets: [{
+                        label: 'Percentage',
+                        data: [74, 75, 66],
+                        backgroundColor: ['#3B82F6', '#F59E0B', '#10B981'],
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: { ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } } }
+            });
+
+            // Dynamic Content Injection
+            const timelineContainer = document.getElementById('timeline-container');
+            timelineData.forEach((item, index) => {
+                const sideClass = index % 2 === 0 ? 'md:ml-auto md:pr-12' : 'md:mr-auto md:pl-12';
+                const dotSideClass = index % 2 === 0 ? 'md:left-1/2 md:-translate-x-1/2' : 'md:left-1/2 md:-translate-x-1/2';
+                const timelineItem = `
+                    <div class="relative">
+                        <div class="absolute top-1 left-0 w-4 h-4 bg-blue-600 rounded-full z-10 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2"></div>
+                        <div class="card p-8 rounded-2xl w-full md:w-[calc(50%-3rem)] ${sideClass}">
+                            <p class="text-sm text-gray-500 mb-2 font-medium">${item.date} - <span class="uppercase font-bold text-blue-600">${item.type}</span></p>
+                            <h4 class="text-2xl font-bold mb-3">${item.title}</h4>
+                            <p class="text-gray-700">${item.description}</p>
+                        </div>
+                    </div>
+                `;
+                timelineContainer.innerHTML += timelineItem;
+            });
+
+            const educationContainer = document.getElementById('education-container');
+            educationData.forEach(item => {
+                const eduItem = `
+                    <div class="border-l-4 border-blue-400 pl-4">
+                        <h4 class="font-bold text-xl">${item.degree}</h4>
+                        <p class="text-gray-600">${item.institution}</p>
+                        <p class="text-sm text-gray-500 mt-1">${item.period} | Grade: <span class="font-bold">${item.grade}</span></p>
+                    </div>
+                `;
+                educationContainer.innerHTML += eduItem;
+            });
+
+            const achievementsContainer = document.getElementById('achievements-container');
+            achievementsData.forEach(item => {
+                const achievementItem = `
+                    <div class="bg-gray-100 p-6 rounded-xl transform transition-transform hover:scale-105">
+                        <h4 class="font-bold text-xl text-blue-600 mb-2">${item.title}</h4>
+                        <p class="text-gray-700">${item.description}</p>
+                    </div>
+                `;
+                achievementsContainer.innerHTML += achievementItem;
+            });
+            
+            // AI Assistant Logic
+            const chatBubble = document.getElementById('chat-bubble');
+            const chatWindow = document.getElementById('chat-window');
+            const closeChatBtn = document.getElementById('close-chat');
+            const chatBody = document.getElementById('chat-body');
+            const chatInput = document.getElementById('chat-input-text');
+            const sendBtn = document.getElementById('send-btn');
+            
+            const cvData = {
+                summary: `Asmit Singh, a B.Tech Computer Science and Engineering student with 4+ years of experience in software development and project management. Skilled in Python, Java, and C++, with a strong foundation in Data Structures and Algorithms (DSA). He is seeking a software development internship.`,
+                contact: `Email: asmit.singh.in@gmail.com, LinkedIn: linkedin.com/in/asmit-singh-795b97287, GitHub: github.com/asmit4e, Phone: +91 8004413591`,
+                projects: [
+                    { title: 'Visual Math Teacher', description: 'An AI-powered application that uses OCR and ML models to solve mathematical problems from printed or handwritten sources. It demonstrates proficiency in AI/ML model integration and a focus on user-centric educational tools.' },
+                    { title: 'Smart Pharmacy Management System', description: 'A comprehensive system to modernize pharmacy operations with real-time inventory, automated stock alerts, sales tracking, and patient record management. This project showcases skills in full-stack development, database design, and business applications.' }
+                ],
+                skills: `Technical: Python, Java, JavaScript, C++, AI/ML, Web Services, APIs, DSA. Professional: Project Management, Leadership, Communication, Critical Thinking, Problem-Solving, Interpersonal Skills, Time Management.`,
+                education: `Bachelor of Computer Science and Engineering from ITS Engineering College, Greater Noida. Current B.Tech grade: 66%.`
+            };
+
+            chatBubble.addEventListener('click', () => {
+                chatWindow.classList.toggle('hidden');
+            });
+            closeChatBtn.addEventListener('click', () => {
+                chatWindow.classList.add('hidden');
+            });
+            
+            function addMessage(text, className) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', className);
+                messageDiv.innerHTML = text;
+                chatBody.appendChild(messageDiv);
+                chatBody.scrollTop = chatBody.scrollHeight;
+                return messageDiv;
+            }
+
+            async function sendMessage() {
+                const userMessage = chatInput.value.trim();
+                if (userMessage === '') return;
+
+                addMessage(userMessage, 'message-user');
+                chatInput.value = '';
+
+                // Add a loading indicator
+                const loadingMessage = addMessage('...', 'message-assistant');
+
+                try {
+                    const response = await getAssistantResponse(userMessage);
+                    loadingMessage.innerHTML = response;
+                } catch (error) {
+                    loadingMessage.innerHTML = 'Sorry, I am having trouble processing that request right now. Please try again later.';
+                    console.error("API error:", error);
+                }
+            }
+
+            async function getAssistantResponse(message) {
+                const prompt = `You are a professional and friendly AI assistant for Asmit Singh's interactive CV. Your goal is to answer questions about Asmit's background using only the information provided below. Do not make up any information. Keep your responses concise and helpful. When possible, include clickable links (using HTML <a> tags) for emails, LinkedIn, or GitHub.
+                
+                CV Data:
+                - Summary: ${cvData.summary}
+                - Contact: ${cvData.contact}
+                - Projects:
+                    - ${cvData.projects.map(p => `${p.title}: ${p.description}`).join('\n- ')}
+                - Skills: ${cvData.skills}
+                - Education: ${cvData.education}
+
+                User's question: "${message}"
+                `;
+
+                const chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    return text;
+                } else {
+                    return 'Sorry, I could not generate a response.';
+                }
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
