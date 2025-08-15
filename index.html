@@ -140,6 +140,27 @@
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
         }
+        /* New styles for suggestion buttons */
+        .suggestion-buttons {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .suggestion-btn {
+            background-color: white;
+            color: #3B82F6;
+            border: 1px solid #BFDBFE;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .suggestion-btn:hover {
+            background-color: #3B82F6;
+            color: white;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -179,8 +200,10 @@
                     A highly motivated and skilled B.Tech student with 4+ years of hands-on experience in software development and project management. Proficient in Python, Java, and C++, with a passion for building innovative solutions and a strong foundation in Data Structures and Algorithms. Eager to contribute to a forward-thinking team as a software development intern.
                 </p>
                 <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
-                    <a href="mailto:asmit.singh.in@gmail.com" class="w-full md:w-auto bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition-colors transform hover:scale-105">Contact Me</a>
-                    <a href="https://linkedin.com/in/asmit-singh-795b97287" target="_blank" class="w-full md:w-auto bg-gray-300 text-gray-800 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-400 transition-colors transform hover:scale-105">LinkedIn Profile</a>
+                    <!-- Updated Contact Buttons -->
+                    <a href="mailto:asmit.singh.in@gmail.com" class="w-full md:w-auto bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition-colors transform hover:scale-105">Email Me</a>
+                    <a href="https://www.linkedin.com/in/asmit-singh-795b97287/" target="_blank" class="w-full md:w-auto bg-gray-300 text-gray-800 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-400 transition-colors transform hover:scale-105">LinkedIn</a>
+                    <a href="https://asmit4e.github.io/Connect-Me./" target="_blank" class="w-full md:w-auto bg-gray-800 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-900 transition-colors transform hover:scale-105">Connect Me</a>
                 </div>
             </div>
         </section>
@@ -288,7 +311,17 @@
             </button>
         </div>
         <div id="chat-body" class="chat-body">
-            <div class="message message-assistant">Hello! I'm Asmit's AI Assistant. How can I help you today?</div>
+            <!-- Initial message is now more interactive -->
+            <div class="message message-assistant">
+                Hello! I'm Asmit's AI Assistant. How can I help you?
+                <div class="suggestion-buttons">
+                    <button class="suggestion-btn" data-query="Summary">Summary</button>
+                    <button class="suggestion-btn" data-query="Skills">Skills</button>
+                    <button class="suggestion-btn" data-query="Experience & Projects">Experience</button>
+                    <button class="suggestion-btn" data-query="Education">Education</button>
+                    <button class="suggestion-btn" data-query="Contact Info">Contact</button>
+                </div>
+            </div>
         </div>
         <div class="chat-input">
             <input type="text" id="chat-input-text" placeholder="Ask a question..." class="flex-grow">
@@ -553,14 +586,13 @@
             const sendBtn = document.getElementById('send-btn');
             
             const cvData = {
-                summary: `Asmit Singh, a B.Tech Computer Science and Engineering student with 4+ years of experience in software development and project management. Skilled in Python, Java, and C++, with a strong foundation in Data Structures and Algorithms (DSA). He is seeking a software development internship.`,
-                contact: `Email: asmit.singh.in@gmail.com, LinkedIn: linkedin.com/in/asmit-singh-795b97287, GitHub: github.com/asmit4e, Phone: +91 8004413591`,
-                projects: [
-                    { title: 'Visual Math Teacher', description: 'An AI-powered application that uses OCR and ML models to solve mathematical problems from printed or handwritten sources. It demonstrates proficiency in AI/ML model integration and a focus on user-centric educational tools.' },
-                    { title: 'Smart Pharmacy Management System', description: 'A comprehensive system to modernize pharmacy operations with real-time inventory, automated stock alerts, sales tracking, and patient record management. This project showcases skills in full-stack development, database design, and business applications.' }
-                ],
-                skills: `Technical: Python, Java, JavaScript, C++, AI/ML, Web Services, APIs, DSA. Professional: Project Management, Leadership, Communication, Critical Thinking, Problem-Solving, Interpersonal Skills, Time Management.`,
-                education: `Bachelor of Computer Science and Engineering from ITS Engineering College, Greater Noida. Current B.Tech grade: 66%.`
+                summary: `Asmit Singh is a highly motivated B.Tech Computer Science student with over 4 years of experience in software development and project management. He's proficient in Python, Java, and C++, has a strong foundation in Data Structures & Algorithms, and is passionate about building innovative solutions.`,
+                contact: `You can reach Asmit via:<br>
+                          - Email: <a href="mailto:asmit.singh.in@gmail.com" class="text-blue-600 hover:underline">asmit.singh.in@gmail.com</a><br>
+                          - LinkedIn: <a href="https://www.linkedin.com/in/asmit-singh-795b97287/" target="_blank" class="text-blue-600 hover:underline">View Profile</a>`,
+                projects: timelineData.filter(item => item.type === 'Project'),
+                skills: `Asmit has a strong set of technical and professional skills. <br><br><b>Technical:</b> Python, Java, JavaScript, C++, AI/ML, Web Services, APIs, and Data Structures & Algorithms. <br><br><b>Professional:</b> Problem-Solving, Project Management, Leadership, and Communication.`,
+                education: `Asmit is currently pursuing a <b>Bachelor of Computer Science and Engineering</b> from ITS Engineering College, Greater Noida (affiliated with AKTU), from 2022 to 2026.`
             };
 
             chatBubble.addEventListener('click', () => {
@@ -579,14 +611,13 @@
                 return messageDiv;
             }
 
-            async function sendMessage() {
-                const userMessage = chatInput.value.trim();
+            async function sendMessage(prefilledMessage = null) {
+                const userMessage = prefilledMessage || chatInput.value.trim();
                 if (userMessage === '') return;
 
                 addMessage(userMessage, 'message-user');
                 chatInput.value = '';
 
-                // Add a loading indicator
                 const loadingMessage = addMessage('...', 'message-assistant');
 
                 try {
@@ -598,14 +629,45 @@
                 }
             }
 
+            // New: Event listener for suggestion buttons using event delegation
+            chatBody.addEventListener('click', function(e) {
+                if (e.target && e.target.classList.contains('suggestion-btn')) {
+                    const query = e.target.dataset.query;
+                    sendMessage(query);
+                }
+            });
+
             async function getAssistantResponse(message) {
-                const prompt = `You are a professional and friendly AI assistant for Asmit Singh's interactive CV. Your goal is to answer questions about Asmit's background using only the information provided below. Do not make up any information. Keep your responses concise and helpful. When possible, include clickable links (using HTML <a> tags) for emails, LinkedIn, or GitHub.
-                
+                const lowerCaseMessage = message.toLowerCase();
+
+                // New: Keyword-based routing for instant, pre-defined answers
+                if (lowerCaseMessage.includes('summary')) {
+                    return cvData.summary;
+                }
+                if (lowerCaseMessage.includes('skill')) {
+                    return cvData.skills;
+                }
+                if (lowerCaseMessage.includes('experience') || lowerCaseMessage.includes('project')) {
+                    let response = "Here are Asmit's key projects:<br><br>";
+                    cvData.projects.forEach(p => {
+                        response += `<b>${p.title}:</b> ${p.description}<br><br>`;
+                    });
+                    return response;
+                }
+                if (lowerCaseMessage.includes('education') || lowerCaseMessage.includes('college')) {
+                    return cvData.education;
+                }
+                if (lowerCaseMessage.includes('contact')) {
+                    return cvData.contact;
+                }
+
+                // Fallback to Gemini API for other questions
+                const prompt = `You are a professional and friendly AI assistant for Asmit Singh's interactive CV. Your goal is to answer questions about Asmit's background using only the information provided below. Do not make up any information. Keep your responses concise and helpful. When possible, include clickable links (using HTML <a> tags) for emails or LinkedIn.
+
                 CV Data:
                 - Summary: ${cvData.summary}
-                - Contact: ${cvData.contact}
-                - Projects:
-                    - ${cvData.projects.map(p => `${p.title}: ${p.description}`).join('\n- ')}
+                - Contact: Email: asmit.singh.in@gmail.com, LinkedIn: https://www.linkedin.com/in/asmit-singh-795b97287/
+                - Projects: ${JSON.stringify(cvData.projects)}
                 - Skills: ${cvData.skills}
                 - Education: ${cvData.education}
 
@@ -633,13 +695,13 @@
                     result.candidates[0].content && result.candidates[0].content.parts &&
                     result.candidates[0].content.parts.length > 0) {
                     const text = result.candidates[0].content.parts[0].text;
-                    return text;
+                    return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-600 hover:underline">$1</a>');
                 } else {
                     return 'Sorry, I could not generate a response.';
                 }
             }
 
-            sendBtn.addEventListener('click', sendMessage);
+            sendBtn.addEventListener('click', () => sendMessage());
             chatInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     sendMessage();
